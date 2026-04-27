@@ -47,4 +47,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class, 'operator_id');
     }
+
+    public function isAdmin(): bool
+    {
+        return ($this->role?->value ?? $this->role) === UserRole::ADMIN->value;
+    }
 }
