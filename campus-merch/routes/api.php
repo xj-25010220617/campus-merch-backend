@@ -8,14 +8,15 @@ use App\Http\Controllers\Api\Order\OrderReviewController;
 use App\Http\Controllers\Api\Product\ProductController;
 use App\Http\Controllers\Api\Report\OrderExportController;
 use Illuminate\Support\Facades\Route;
-
+// 1. 公共路由 (无需 Token)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+// 2. 受保护路由 (需要 Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
+    // 产品路由
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
