@@ -18,6 +18,10 @@ class OrderAttachment extends Model
         'is_deleted',
     ];
 
+    protected $casts = [
+        'is_deleted' => 'boolean',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

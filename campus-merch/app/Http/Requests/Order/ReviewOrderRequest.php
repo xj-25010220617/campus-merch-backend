@@ -2,23 +2,24 @@
 
 namespace App\Http\Requests\Order;
 
-use App\Enums\OrderStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 
 class ReviewOrderRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
     {
         return [
-            'status' => ['required', new Enum(OrderStatus::class)],
-            'quantity' => ['nullable', 'integer', 'min:1'],
-            'review_reason' => ['nullable', 'string', 'max:1000'],
+            'action' => ['required', 'in:approve,reject'],
+            'reason' => ['nullable', 'string', 'max:255']
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->action === 'reject' && empty($this->reason)) {
+                $validator->errors()->add('reason', '驳回必须填写原因');
+            }
+        });
     }
 }

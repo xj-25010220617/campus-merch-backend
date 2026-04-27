@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/my-orders', [OrderController::class, 'myOrders']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::post('/orders/{id}/complete', [OrderController::class, 'complete']);
     Route::post('/orders/{id}/design', [OrderDesignController::class, 'store']);
 
