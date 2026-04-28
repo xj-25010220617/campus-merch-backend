@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
+
+        // API 路由跳过 CSRF 验证
+        $middleware->validateCsrfTokens(except: [
+            '/api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

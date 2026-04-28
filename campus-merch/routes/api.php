@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\Report\OrderExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -20,14 +20,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/my-orders', [OrderController::class, 'myOrders']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::post('/orders/{id}/complete', [OrderController::class, 'complete']);
-    Route::post('/orders/{id}/design', [OrderDesignController::class, 'store']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::post('/orders/{order}/complete', [OrderController::class, 'complete']);
+    Route::post('/orders/{order}/design', [OrderDesignController::class, 'store']);
 
     Route::middleware('role:admin')->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::post('/products/import', [ProductController::class, 'import']);
-        Route::put('/admin/orders/{id}/review', [OrderReviewController::class, 'review']);
+        Route::put('/admin/orders/{order}/review', [OrderReviewController::class, 'review']);
         Route::get('/orders/export', [OrderExportController::class, 'export']);
         Route::get('/admin/stats', [StatsController::class, 'index']);
     });

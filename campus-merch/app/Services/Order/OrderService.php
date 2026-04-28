@@ -30,8 +30,8 @@ class OrderService
             $unitPrice = $product->price;
             $totalPrice = bcmul($unitPrice, $data['quantity'], 2);
 
-            $fromStatus = OrderStatus::Draft->value;
-            $toStatus = OrderStatus::Booked->value;
+            $fromStatus = OrderStatus::Draft;
+            $toStatus = OrderStatus::Booked;
 
             $order = Order::create([
                 'user_id'          => $user->id,
@@ -50,8 +50,8 @@ class OrderService
             $this->auditLogService->recordOrderTransition(
                 operatorId: $user->id,
                 orderId: $order->id,
-                fromStatus: $fromStatus,
-                toStatus: $toStatus,
+                fromStatus: $fromStatus->value,
+                toStatus: $toStatus->value,
                 remark: "创建订单 {$order->order_no}，预扣库存 {$data['quantity']}",
             );
 
@@ -73,9 +73,9 @@ class OrderService
             }
 
             $fromStatus = $order->status;
-            $toStatus = OrderStatus::Completed->value;
+            $toStatus = OrderStatus::Completed;
 
-            OrderStateMachine::ensureTransition($fromStatus, $toStatus);
+            OrderStateMachine::ensureTransition($fromStatus->value, $toStatus->value);
 
             $product = Product::whereKey($order->product_id)
                 ->lockForUpdate()
@@ -91,8 +91,8 @@ class OrderService
             $this->auditLogService->recordOrderTransition(
                 operatorId: $user->id,
                 orderId: $order->id,
-                fromStatus: $fromStatus,
-                toStatus: $toStatus,
+                fromStatus: $fromStatus->value,
+                toStatus: $toStatus->value,
                 remark: "完成订单 {$order->order_no}，扣减库存 {$order->quantity}",
             );
 
@@ -106,7 +106,12 @@ class OrderService
             ->where('user_id', $request->user()->id);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
+            $validStatuses = array_column(OrderStatus::cases(), 'value');
+            $status = $request->input('status');
+
+            if (in_array($status, $validStatuses, true)) {
+                $query->where('status', $status);
+            }
         }
 
         $orders = $query->latest()->paginate($request->input('per_page', 10));

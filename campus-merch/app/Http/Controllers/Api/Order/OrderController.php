@@ -29,9 +29,11 @@ class OrderController extends Controller
         ]);
     }
 
-    // POST /api/orders/{id}/complete
+    // POST /api/orders/{order}/complete
     public function complete(Request $request, Order $order)
     {
+        $this->authorize('complete', $order);
+
         $order = $this->orderService->complete(
             $request->user(),
             $order
@@ -52,13 +54,7 @@ class OrderController extends Controller
 
     public function show(Request $request, Order $order)
     {
-        if ($order->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
-            return response()->json([
-                'code'    => 403,
-                'message' => '无权限查看',
-                'data'    => null,
-            ], 403);
-        }
+        $this->authorize('view', $order);
 
         $order->load(['product', 'attachments']);
 

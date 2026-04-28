@@ -48,4 +48,17 @@ class OrderStateMachine
     {
         return self::TRANSITIONS[$current] ?? [];
     }
+
+    public static function getStatusLabel(string $status): string
+    {
+        return match ($status) {
+            OrderStatus::Draft->value          => '草稿',
+            OrderStatus::Booked->value         => '已预订',
+            OrderStatus::DesignPending->value  => '待审核',
+            OrderStatus::Ready->value          => '已就绪',
+            OrderStatus::Completed->value      => '已完成',
+            OrderStatus::Rejected->value       => '已驳回',
+            default                            => '未知',
+        };
+    }
 }

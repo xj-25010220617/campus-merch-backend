@@ -15,9 +15,11 @@ class InventoryService
 
     public function reserve(Product $product, int $quantity): void
     {
+        $product->refresh();
+
         if (!$this->checkAvailability($product, $quantity)) {
             throw ValidationException::withMessages([
-                'quantity' => '库存不足，可用库存: ' . ($product->stock - $product->reserved_stock),
+                'quantity' => '库存不足',
             ]);
         }
 
@@ -26,6 +28,14 @@ class InventoryService
 
     public function deduct(Product $product, int $quantity): void
     {
+        $product->refresh();
+
+        if ($product->reserved_stock < $quantity) {
+            throw ValidationException::withMessages([
+                'quantity' => '预扣库存不足，无法扣减',
+            ]);
+        }
+
         $product->decrement('reserved_stock', $quantity);
         $product->decrement('stock', $quantity);
         $product->increment('sold_stock', $quantity);
@@ -33,6 +43,9 @@ class InventoryService
 
     public function release(Product $product, int $quantity): void
     {
-        $product->decrement('reserved_stock', $quantity);
+        $product->refresh();
+
+        $releaseQty = min($quantity, $product->reserved_stock);
+        $product->decrement('reserved_stock', $releaseQty);
     }
 }

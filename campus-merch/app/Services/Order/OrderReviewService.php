@@ -26,10 +26,10 @@ class OrderReviewService
 
             $fromStatus = $order->status;
             $toStatus = $data['action'] === 'approve'
-                ? OrderStatus::Ready->value
-                : OrderStatus::Rejected->value;
+                ? OrderStatus::Ready
+                : OrderStatus::Rejected;
 
-            OrderStateMachine::ensureTransition($fromStatus, $toStatus);
+            OrderStateMachine::ensureTransition($fromStatus->value, $toStatus->value);
 
             if ($data['action'] === 'approve') {
                 $order->update([
@@ -52,12 +52,12 @@ class OrderReviewService
                 ]);
             }
 
-            $label = OrderStateMachine::getTransitionLabel($fromStatus, $toStatus);
+            $label = OrderStateMachine::getTransitionLabel($fromStatus->value, $toStatus->value);
             $this->auditLogService->recordOrderTransition(
                 operatorId: $admin->id,
                 orderId: $order->id,
-                fromStatus: $fromStatus,
-                toStatus: $toStatus,
+                fromStatus: $fromStatus->value,
+                toStatus: $toStatus->value,
                 remark: "{$label} - 订单 {$order->order_no}",
             );
 

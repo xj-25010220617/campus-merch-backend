@@ -32,18 +32,20 @@ class AuthService
 
         if (! $user || ! Hash::check($payload['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid email or password.'],
+                'email' => ['邮箱或密码错误'],
             ]);
         }
 
         if ($user->status !== 'active') {
-            throw new AuthenticationException('This account is disabled.');
+            throw ValidationException::withMessages([
+                'email' => ['该账号已被禁用'],
+            ]);
         }
 
         return $this->buildAuthPayload($user, 'login-token');
     }
 
-    public function logout(User $user, ?string $tokenId): void
+    public function logout(User $user, ?int $tokenId): void
     {
         if ($tokenId) {
             $user->tokens()->whereKey($tokenId)->delete();
