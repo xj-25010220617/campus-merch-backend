@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PHPUnit">
+    <option name="directories">
+      <list>
+        <option value="$PROJECT_DIR$/校园物料预定/tests/Unit" />
+        <option value="$PROJECT_DIR$/校园物料预定/tests/Feature" />
+        <option value="$PROJECT_DIR$/校园物料预定/laravel_tmp/tests/Unit" />
+        <option value="$PROJECT_DIR$/校园物料预定/laravel_tmp/tests/Feature" />
+        <option value="$PROJECT_DIR$/campus-merch/tests/Unit" />
+        <option value="$PROJECT_DIR$/campus-merch/tests/Feature" />
+      </list>
+    </option>
+  </component>
+</project>

@@ -1,0 +1,396 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "校园周边商城 API",
+    "description": "Campus Merch 后端接口文档，基于 routes/api.php 生成",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000/api",
+      "description": "本地开发环境"
+    }
+  ],
+  "tags": [
+    { "name": "认证", "description": "注册、登录、登出、用户信息" },
+    { "name": "商品", "description": "商品列表、详情、管理" },
+    { "name": "订单", "description": "下单、查询、完成" },
+    { "name": "审核", "description": "管理员审核订单" },
+    { "name": "文件", "description": "设计稿上传" },
+    { "name": "报表", "description": "导出、统计" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Sanctum Token",
+        "description": "通过 /api/login 或 /api/register 获取的 token"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1, "description": "用户ID" },
+          "name": { "type": "string", "example": "张三", "description": "用户名" },
+          "email": { "type": "string", "format": "email", "example": "zhangsan@example.com", "description": "邮箱" },
+          "phone": { "type": "string", "nullable": true, "example": "13800138000", "description": "手机号" },
+          "role": { "type": "string", "enum": ["user", "admin"], "example": "user", "description": "角色" },
+          "status": { "type": "string", "enum": ["active", "disabled"], "example": "active", "description": "状态" },
+          "created_at": { "type": "string", "format": "date-time", "example": "2026-04-28T10:00:00.000000Z", "description": "注册时间" }
+        }
+      },
+      "AuthData": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "1|abc123def456ghi789", "description": "访问令牌" },
+          "token_type": { "type": "string", "example": "Bearer", "description": "令牌类型" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1, "description": "商品ID" },
+          "name": { "type": "string", "example": "校园文化衫", "description": "商品名称" },
+          "category": { "type": "string", "example": "服装", "description": "分类" },
+          "type": { "type": "string", "example": "T恤", "description": "类型" },
+          "spec": { "type": "string", "nullable": true, "example": "纯棉180g", "description": "规格" },
+          "price": { "type": "string", "example": "59.90", "description": "单价" },
+          "stock": { "type": "integer", "example": 200, "description": "可用库存" },
+          "reserved_stock": { "type": "integer", "example": 10, "description": "预扣库存" },
+          "sold_stock": { "type": "integer", "example": 50, "description": "已售库存" },
+          "cover_url": { "type": "string", "nullable": true, "example": "https://oss.example.com/covers/shirt.jpg", "description": "封面图URL" },
+          "custom_rule": { "type": "string", "nullable": true, "description": "定制规则" },
+          "status": { "type": "string", "enum": ["draft", "active", "inactive", "archived"], "example": "active", "description": "状态" },
+          "version": { "type": "integer", "example": 0, "description": "版本号(乐观锁)" },
+          "created_at": { "type": "string", "format": "date-time", "description": "创建时间" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "更新时间" }
+        }
+      },
+      "OrderAttachment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1, "description": "附件ID" },
+          "order_id": { "type": "integer", "example": 1, "description": "订单ID" },
+          "type": { "type": "string", "enum": ["design", "effect"], "example": "design", "description": "附件类型" },
+          "origin_name": { "type": "string", "example": "设计稿.png", "description": "原始文件名" },
+          "storage_path": { "type": "string", "example": "orders/2026/04/abc123.png", "description": "存储路径" },
+          "mime_type": { "type": "string", "example": "image/png", "description": "MIME类型" },
+          "size": { "type": "integer", "example": 102400, "description": "文件大小(字节)" },
+          "ext": { "type": "string", "example": "png", "description": "扩展名" },
+          "is_deleted": { "type": "boolean", "example": false, "description": "是否已删除" },
+          "created_at": { "type": "string", "format": "date-time", "description": "创建时间" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1, "description": "订单ID" },
+          "order_no": { "type": "string", "example": "ORD202604281000000001", "description": "订单编号" },
+          "user_id": { "type": "integer", "example": 1, "description": "下单用户ID" },
+          "product_id": { "type": "integer", "example": 1, "description": "商品ID" },
+          "quantity": { "type": "integer", "example": 2, "description": "购买数量" },
+          "unit_price": { "type": "string", "example": "59.90", "description": "下单单价" },
+          "total_price": { "type": "string", "example": "119.80", "description": "订单总价" },
+          "size": { "type": "string", "nullable": true, "example": "XL", "description": "尺码" },
+          "color": { "type": "string", "nullable": true, "example": "白色", "description": "颜色" },
+          "status": { "type": "string", "enum": ["draft", "booked", "design_pending", "ready", "completed", "rejected"], "example": "booked", "description": "订单状态" },
+          "status_label": { "type": "string", "example": "已预订", "description": "状态中文标签" },
+          "shipping_address": { "type": "string", "nullable": true, "example": "北京市海淀区XX路XX号", "description": "收货地址" },
+          "remark": { "type": "string", "nullable": true, "example": "请加急处理", "description": "用户备注" },
+          "reviewed_by": { "type": "integer", "nullable": true, "example": 2, "description": "审核人ID" },
+          "reviewed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "审核时间" },
+          "review_reason": { "type": "string", "nullable": true, "example": "设计稿不符合规范", "description": "审核/驳回原因" },
+          "completed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "完成时间" },
+          "created_at": { "type": "string", "format": "date-time", "description": "创建时间" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "更新时间" },
+          "product": { "$ref": "#/components/schemas/Product" },
+          "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/OrderAttachment" } }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "current_page": { "type": "integer", "example": 1 },
+          "from": { "type": "integer", "example": 1 },
+          "last_page": { "type": "integer", "example": 3 },
+          "per_page": { "type": "integer", "example": 10 },
+          "to": { "type": "integer", "example": 10 },
+          "total": { "type": "integer", "example": 25 }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "integer", "example": 0, "description": "业务状态码，0=成功" },
+          "message": { "type": "string", "example": "success", "description": "提示信息" },
+          "data": { "description": "响应数据" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "The given data was invalid.", "description": "错误信息" },
+          "errors": {
+            "type": "object",
+            "additionalProperties": { "type": "array", "items": { "type": "string" } },
+            "example": { "email": ["邮箱或密码错误"] }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户注册",
+        "operationId": "register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password", "password_confirmation"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "description": "用户名", "example": "张三" },
+                  "email": { "type": "string", "format": "email", "maxLength": 255, "description": "邮箱(必须唯一)", "example": "zhangsan@example.com" },
+                  "password": { "type": "string", "format": "password", "minLength": 8, "description": "密码(至少8位)", "example": "12345678" },
+                  "password_confirmation": { "type": "string", "format": "password", "description": "确认密码(必须与password一致)", "example": "12345678" },
+                  "phone": { "type": "string", "maxLength": 20, "description": "手机号(选填)", "example": "13800138000" }
+                }
+              },
+              "example": {
+                "name": "张三",
+                "email": "zhangsan@example.com",
+                "password": "12345678",
+                "password_confirmation": "12345678",
+                "phone": "13800138000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/AuthData" } } }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "token": "1|abc123def456ghi789",
+                    "token_type": "Bearer",
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "email": "zhangsan@example.com",
+                      "phone": "13800138000",
+                      "role": "user",
+                      "status": "active",
+                      "created_at": "2026-04-28T10:00:00.000000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "message": "The email has already been taken.",
+                  "errors": {
+                    "email": ["The email has already been taken."]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户登录",
+        "operationId": "login",
+        "description": "限速：每分钟最多5次请求",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "description": "邮箱(自动转小写)", "example": "zhangsan@example.com" },
+                  "password": { "type": "string", "format": "password", "description": "密码", "example": "12345678" }
+                }
+              },
+              "example": {
+                "email": "zhangsan@example.com",
+                "password": "12345678"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/AuthData" } } }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "token": "2|xyz789ghi012jkl345",
+                    "token_type": "Bearer",
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "email": "zhangsan@example.com",
+                      "phone": "13800138000",
+                      "role": "user",
+                      "status": "active",
+                      "created_at": "2026-04-28T10:00:00.000000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "邮箱或密码错误 / 账号已禁用",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "message": "The given data was invalid.",
+                  "errors": {
+                    "email": ["邮箱或密码错误"]
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁(限速)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Too many attempts. Please try again in 60 seconds."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户登出",
+        "operationId": "logout",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "登出成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessResponse" },
+                    { "type": "object", "properties": { "data": { "type": "object", "nullable": true } } }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证",
+            "content": {
+              "application/json": {
+                "example": { "message": "Unauthenticated." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["认证"],
+        "summary": "获取当前用户信息",
+        "operationId": "me",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/User" } } }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "id": 1,
+                    "name": "张三",
+                    "email": "zhangsan@example.com",
+                    "phone": "13800138000",
+                    "role": "user",
+                    "status": "active",
+                    "created_at": "2026-04-28T10:00:00.000000Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证",
+            "content": {
+              "application/json": {
+                "example": { "message": "Unauthenticated." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": ["商品"],
+        "summary": "获取商品列表",
+        "operationId": "productList",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "category", "in": "query", "schema": { "type": "string" }, "description": "按分类筛选", "example": "服装" },
+          { "name": "type", "in": "query", "schema": { "type": "string" }, "description": "按类型筛选", "example": "T恤" },
+          { "name": "status",

@@ -12,16 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone', 20)->nullable();
-            $table->string('role', 20)->default('user');
-            $table->string('status', 20)->default('active');
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->id()->comment('用户ID');
+            $table->string('name')->comment('用户名');
+            $table->string('email')->unique()->comment('邮箱');
+            $table->string('phone', 20)->nullable()->comment('手机号');
+            $table->string('role', 20)->default('user')->comment('角色: user/admin');
+            $table->string('status', 20)->default('active')->comment('状态: active/disabled');
+            $table->timestamp('email_verified_at')->nullable()->comment('邮箱验证时间');
+            $table->string('password')->comment('密码');
+            $table->rememberToken()->comment('记住我令牌');
             $table->timestamps();
+            $table->comment('用户表');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
