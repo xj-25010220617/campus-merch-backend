@@ -21,15 +21,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/my-orders', [OrderController::class, 'myOrders']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/complete', [OrderController::class, 'complete']);
     Route::post('/orders/{order}/design', [OrderDesignController::class, 'store']);
 
+    // 管理员路由（需 admin 角色）
     Route::middleware('role:admin')->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::post('/products/import', [ProductController::class, 'import']);
         Route::put('/admin/orders/{order}/review', [OrderReviewController::class, 'review']);
-        Route::get('/orders/export', [OrderExportController::class, 'export']);
         Route::get('/admin/stats', [StatsController::class, 'index']);
+
+        // ⚠️ /orders/export 必须在 /orders/{order} 之前，否则动态路由会吞掉 "export"
+        Route::get('/orders/export', [OrderExportController::class, 'export']);
     });
+
+    // ⚠️ 动态路由放最后，避免吞掉固定路径（如 export）
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
 });

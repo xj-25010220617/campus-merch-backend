@@ -138,10 +138,11 @@ class OrderAttachmentService
          *    ->value = 枚举对应的值（如 'booked'）
          *    ->name  = 枚举常量名（如 'BOOKED'）
          */
-        if ($order->status !== OrderStatus::BOOKED) {
+        $currentStatus = $order->status?->value ?? (string)$order->status;
+
+        if ($currentStatus !== OrderStatus::BOOKED->value) {
             throw new \InvalidArgumentException(
-                "当前订单状态为「{$order->status}」，仅「已预订」状态的订单可上传设计稿。"
-                // 抛出异常后，Controller 的异常处理器会捕获并返回友好的错误响应
+                "当前订单状态为「{$currentStatus}」，仅「已预订」状态的订单可上传设计稿。"
             );
         }
 

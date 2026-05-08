@@ -430,23 +430,65 @@ class ProductImportService
      * ⚠️ 注意：这里要求表头使用**英文字段名**！
      *    如果需要支持中文表头，需要额外的中英文对照映射表。
      */
+    /**
+     * 中英文表头对照映射（中文 → 英文字段名）
+     */
+    private const HEADER_ALIASES = [
+        '商品名称'   => 'name',
+        '分类'       => 'category',
+        '类型'       => 'type',
+        '规格说明'   => 'spec',
+        '规格'       => 'spec',
+        '单价'       => 'price',
+        '库存数量'   => 'stock',
+        '库存'       => 'stock',
+        '封面图URL'  => 'cover_url',
+        '封面图'     => 'cover_url',
+        '封面url'    => 'cover_url',
+        '定制规则'   => 'custom_rule',
+    ];
+
+    /**
+     * 中文枚举值 → 英文数据库值 映射（用于导入时自动转换）
+     */
+    private const ENUM_ALIASES = [
+        // 分类 (ProductCategory)
+        '服装'  => 'clothing',
+        '日用品' => 'daily',
+        '日常'   => 'daily',
+        '文创'   => 'creative',
+        '文具'   => 'stationery',
+        '配饰'   => 'accessory',
+        // 类型 (ProductType)
+        '标准款' => 'standard',
+        '定制款' => 'custom',
+    ];
+
     private function buildHeaderMap(array $headerRow): array
     {
         $map = [];
-        
-        // array_keys(self::TEMPLATE_COLUMNS) 提取所有已知字段名的 key
-        // 得到：['name', 'category', 'type', 'spec', 'price', 'stock', 'cover_url', 'custom_rule']
+
         $knownColumns = array_keys(self::TEMPLATE_COLUMNS);
 
         foreach ($headerRow as $index => $cellValue) {
-            $trimmed = trim((string) $cellValue); // 去除首尾空白
-            
-            // in_array 检查这个表头是否是已知字段名之一
+            $trimmed = trim((string) $cellValue);
+
+            // 先检查英文标准字段名
             if (in_array($trimmed, $knownColumns, true)) {
-                $map[$index] = $trimmed;  // 是 → 记录映射
-            } else {
-                $map[$index] = null;      // 不是 → 标记为 null（该列将被忽略）
+                $map[$index] = $trimmed;
+                continue;
             }
+
+            // 再检查中文别名（大小写不敏感）
+            $lower = mb_strtolower($trimmed);
+            foreach (self::HEADER_ALIASES as $alias => $field) {
+                if (mb_strtolower($alias) === $lower) {
+                    $map[$index] = $field;
+                    continue 2; // 跳到下一个 header 单元格
+                }
+            }
+
+            $map[$index] = null;
         }
 
         return $map;
@@ -497,11 +539,11 @@ class ProductImportService
             // ═══ 校验1：必填项检查 ═══
             if ($config['required'] && $value === '') {
                 $errors[] = [
-                    'row'    => $excelRow,              // 方便用户在 Excel 中定位
-                    'field'  => $field,                  // 哪个字段有问题
-                    'reason' => "【{$config['label']}】为必填项", // 友好的中文提示
+                    'row'    => $excelRow,
+                    'field'  => $config['label'],
+                    'reason' => "【{$config['label']}】为必填项",
                 ];
-                continue; // 跳过后续校验（已经知道这项有问题了）
+                continue;
             }
 
             // 非必填字段且值为空 → 直接跳过，不需要进一步校验
@@ -513,76 +555,54 @@ class ProductImportService
             switch ($field) {
 
                 case 'price':
-                    /*
-                     * FILTER_VALIDATE_FLOAT 是 PHP 内置过滤器
-                     * 用于验证值是否是有效的浮点数
-                     *
-                     * 返回值：
-                     *    成功 → 浮点数值（如 39.9）
-                     *    失败 → false（如 "abc"、""--空字符串前面已被拦截）
-                     */
                     $priceVal = filter_var($value, FILTER_VALIDATE_FLOAT);
-                    
+
                     if ($priceVal === false || $priceVal <= 0) {
                         $errors[] = [
                             'row'    => $excelRow,
-                            'field'  => $field,
+                            'field'  => $config['label'],
                             'reason' => '价格必须为正数',
                         ];
                     }
                     break;
 
                 case 'stock':
-                    /*
-                     * FILTER_VALIDATE_INT 验证整数
-                     * 允许 0（库存为0 = 缺货），不允许负数
-                     */
                     $stockVal = filter_var($value, FILTER_VALIDATE_INT);
-                    
+
                     if ($stockVal === false || $stockVal < 0) {
                         $errors[] = [
                             'row'    => $excelRow,
-                            'field'  => $field,
+                            'field'  => $config['label'],
                             'reason' => '库存不能为负数',
                         ];
                     }
                     break;
 
                 case 'category':
-                    /*
-                     * 枚举值校验：分类必须是 ProductCategory 中定义的合法值
-                     *
-                     * ProductCategory::cases() 返回所有枚举实例
-                     * array_column(..., 'value') 提取所有合法的字符串值
-                     * 如：['clothing', 'daily', 'creative', 'stationery', 'accessory']
-                     */
                     $validCategories = array_column(ProductCategory::cases(), 'value');
-                    if (! in_array($value, $validCategories, true)) {
+                    // 支持中文别名自动转换
+                    $resolvedCategory = self::ENUM_ALIASES[$value] ?? $value;
+                    if (! in_array($resolvedCategory, $validCategories, true)) {
                         $errors[] = [
                             'row'    => $excelRow,
-                            'field'  => $field,
-                            'reason' => '分类值非法，允许值：' . implode(', ', $validCategories),
+                            'field'  => $config['label'],
+                            'reason' => '分类值非法，允许值：' . implode(', ', array_merge($validCategories, ['服装', '日用品', '文创', '文具', '配饰'])),
                         ];
                     }
                     break;
 
                 case 'type':
-                    /*
-                     * 枚举值校验：类型必须是 ProductType 中定义的合法值
-                     * 允许值：standard（标准款）、custom（定制款）
-                     */
                     $validTypes = array_column(ProductType::cases(), 'value');
-                    if (! in_array($value, $validTypes, true)) {
+                    // 支持中文别名自动转换
+                    $resolvedType = self::ENUM_ALIASES[$value] ?? $value;
+                    if (! in_array($resolvedType, $validTypes, true)) {
                         $errors[] = [
                             'row'    => $excelRow,
-                            'field'  => $field,
-                            'reason' => '类型值非法，允许值：' . implode(', ', $validTypes),
+                            'field'  => $config['label'],
+                            'reason' => '类型值非法，允许值：' . implode(', ', array_merge($validTypes, ['标准款', '定制款'])),
                         ];
                     }
                     break;
-
-                // 其他字段暂无特殊校验规则...
-                // 未来可在此扩展：cover_url URL格式校验等
             }
         }
 
@@ -620,10 +640,14 @@ class ProductImportService
      */
     private function normalizeProductData(array $row): array
     {
+        // 枚举字段：中文别名 → 英文数据库值
+        $categoryVal = trim((string) ($row['category'] ?? ''));
+        $typeVal     = trim((string) ($row['type'] ?? ''));
+
         return [
             'name'          => trim((string) ($row['name'] ?? '')),
-            'category'      => trim((string) ($row['category'] ?? '')),
-            'type'          => trim((string) ($row['type'] ?? '')),
+            'category'      => self::ENUM_ALIASES[$categoryVal] ?? $categoryVal,
+            'type'          => self::ENUM_ALIASES[$typeVal] ?? $typeVal,
             
             // spec 为空 → 存 null（表示"未设置"比存空字符串更规范）
             'spec'          => ! empty(trim((string) ($row['spec'] ?? '')))

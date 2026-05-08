@@ -233,6 +233,6 @@ class ProductController extends Controller
                 'fail_count'    => $result['fail_count'],
                 'errors'        => $result['errors'],
             ],
-        ], $status);
+        ], $status, [], JSON_UNESCAPED_UNICODE);
     }
 }
