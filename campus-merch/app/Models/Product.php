@@ -22,10 +22,10 @@ class Product extends Model
         'version',
     ];
     // 1. 修正可用库存计算逻辑 (适配 reserved_stock 字段名)
-    public function getAvailableStockAttribute()
-    {
-        return $this->stock - $this->sold_stock - $this->reserved_stock;
-    }
+   public function getAvailableStockAttribute(): int
+{
+    return $this->stock - $this->reserved_stock;
+}
 
     // 2. 检查库存方法
     public function hasSufficientStock($quantity)
@@ -35,16 +35,22 @@ class Product extends Model
 
     // 3. 乐观锁更新方法 (配合 version 字段)
     // 这个方法用于商品编辑保存时，确保数据未被他人修改
-    public function updateWithLock(array $data, $currentVersion)
+    public function updateWithLock(array $data, $currentVersion): void
     {
-        return $this->where('id', $this->id)
+        $updated = $this->where('id', $this->id)
             ->where('version', $currentVersion) // 检查版本是否匹配
             ->update(array_merge($data, ['version' => $currentVersion + 1]));
-    }
 
+        if ($updated === 0) {
+            throw new \Exception('数据已被其他用户修改，请刷新后重试');
+        }
+    }
 
     protected $casts = [
         'price' => 'decimal:2',
+        'stock' => 'integer',
+        'reserved_stock' => 'integer',
+        'sold_stock' => 'integer',
     ];
 
     public function orders(): HasMany

@@ -30,6 +30,7 @@ class Order extends Model
     protected $casts = [
         'unit_price'    => 'decimal:2',
         'total_price'   => 'decimal:2',
+        'quantity'      => 'integer',
         'reviewed_at'   => 'datetime',
         'completed_at'  => 'datetime',
     ];
@@ -60,7 +61,8 @@ class Order extends Model
 
     public function attachments(): HasMany
     {
-        return $this->hasMany(OrderAttachment::class);
+        return $this->hasMany(OrderAttachment::class)
+            ->where('is_deleted', false);
     }
 
     public function isBelongsTo(User $user): bool
@@ -69,15 +71,15 @@ class Order extends Model
     }
 
     public function getStatusLabel(): string
-    {
-        return match ($this->status) {
-            OrderStatus::Draft->value          => '草稿',
-            OrderStatus::Booked->value         => '已预订',
-            OrderStatus::DesignPending->value  => '待审核',
-            OrderStatus::Ready->value          => '已就绪',
-            OrderStatus::Completed->value      => '已完成',
-            OrderStatus::Rejected->value       => '已驳回',
-            default                            => '未知',
-        };
-    }
+{
+    return match ($this->status) {
+        OrderStatus::DRAFT->value => '草稿',
+        OrderStatus::BOOKED->value => '已预订',
+        OrderStatus::DESIGN_PENDING->value => '待设计',
+        OrderStatus::READY->value => '待领取',
+        OrderStatus::COMPLETED->value => '已完成',
+        OrderStatus::REJECTED->value => '已驳回',
+        default => '未知状态'
+    };
+}
 }

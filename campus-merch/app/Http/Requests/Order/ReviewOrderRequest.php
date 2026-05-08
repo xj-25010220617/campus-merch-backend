@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests\Order;
 
+use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReviewOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->role === UserRole::ADMIN->value;
     }
 
     public function rules(): array

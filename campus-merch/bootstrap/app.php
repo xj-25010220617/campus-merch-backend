@@ -22,5 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            return response()->json([
+                'code' => 401,
+                'message' => '未认证，请先登录',
+                'data' => null,
+            ], 401);
+        });
     })->create();

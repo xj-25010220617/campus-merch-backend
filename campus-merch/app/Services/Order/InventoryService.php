@@ -36,8 +36,8 @@ class InventoryService
             ]);
         }
 
+        // ✅ 完成订单：预扣转已售
         $product->decrement('reserved_stock', $quantity);
-        $product->decrement('stock', $quantity);
         $product->increment('sold_stock', $quantity);
     }
 

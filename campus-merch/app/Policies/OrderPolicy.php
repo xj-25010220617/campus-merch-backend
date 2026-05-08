@@ -13,8 +13,9 @@ class OrderPolicy
         return $order->user_id === $user->id || $user->role === UserRole::ADMIN;
     }
 
-    public function complete(User $user, Order $order): bool
-    {
-        return $order->user_id === $user->id;
-    }
+   public function complete(User $user, Order $order): bool
+{
+    return $order->user_id === $user->id 
+        || $user->role === UserRole::ADMIN->value;
+}
 }
