@@ -30,7 +30,7 @@ class OrderService
             $unitPrice = $product->price;
             $totalPrice = bcmul($unitPrice, $data['quantity'], 2);
 
-            $fromStatus = OrderStatus::Draft;
+            $fromStatus = OrderStatus::DRAFT;
             $toStatus = OrderStatus::Booked;
 
             $order = Order::create([
@@ -73,7 +73,7 @@ class OrderService
             }
 
             $fromStatus = $order->status;
-            $toStatus = OrderStatus::Completed;
+            $toStatus = OrderStatus::COMPLETED;
 
             OrderStateMachine::ensureTransition($fromStatus->value, $toStatus->value);
 

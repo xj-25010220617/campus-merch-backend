@@ -26,8 +26,8 @@ class OrderReviewService
 
             $fromStatus = $order->status;
             $toStatus = $data['action'] === 'approve'
-                ? OrderStatus::Ready
-                : OrderStatus::Rejected;
+                ? OrderStatus::READY
+                : OrderStatus::REJECTED;
 
             OrderStateMachine::ensureTransition($fromStatus->value, $toStatus->value);
 
