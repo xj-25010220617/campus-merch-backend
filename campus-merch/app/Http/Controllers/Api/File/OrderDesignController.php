@@ -165,40 +165,56 @@ class OrderDesignController extends Controller
         // ════════════════════════════════════════
 
         return response()->json([
-            'code' => 0,
+            'code'    => 0,
             'message' => '设计稿上传成功，订单已进入待审核状态。',
-            
+
             'data' => [
-                'id'           => $attachment->id,           // 附件记录 ID
-                'order_id'     => $attachment->order_id,     // 所属订单 ID
-                'origin_name'  => $attachment->origin_name,  // 用户原始文件名（用于显示）
-                'mime_type'    => $attachment->mime_type,    // MIME 类型
-                'size'         => $attachment->size,         // 文件大小（字节）
-                'ext'          => $attachment->ext,          // 扩展名
-
-                /*
-                 * 生成临时访问链接
-                 *
-                 * app() 是 Laravel 的服务容器解析方法
-                 * app(OssUploadService::class) 从容器中获取 OssUploadService 实例
-                 *
-                 * 这里没有使用注入的 $this->attachmentService（因为它内部有 ossService），
-                 * 而是直接从容器取 OssUploadService 来调用 getTemporaryUrl()
-                 * （也可以把 OssUploadService 也注入到构造函数中）
-                 */
-                'temporary_url' => app(\App\Services\File\OssUploadService::class)
+                '附件编号'     => $attachment->id,
+                '订单编号'     => $attachment->order_id,
+                '文件名称'     => $this->cleanFileName($attachment->origin_name, $attachment->ext),
+                '文件类型'     => $attachment->ext,
+                '文件大小'     => $this->formatSize($attachment->size),
+                '预览链接'     => app(\App\Services\File\OssUploadService::class)
                     ->getTemporaryUrl($attachment->storage_path),
-
-                /*
-                 * $order->fresh() 重新从数据库读取最新的订单状态
-                 *
-                 * 为什么需要 fresh()？
-                 *    因为 uploadDesign() 内部已经更新了 order->status（booked → design_pending），
-                 *    但内存中的 $order 对象还是旧的状态（Laravel Eloquent 有缓存机制）。
-                 *    fresh() 会丢弃缓存，重新从 DB 查询一次最新数据。
-                 */
-                'order_status' => $order->fresh()->status,
+                '订单状态'     => $order->fresh()->status?->value ?? (string)$order->fresh()->status,
             ],
-        ], 201); // HTTP 状态码 201 = Created（资源创建成功）
+        ], 201, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 格式化文件大小（字节 → 可读字符串）
+     */
+    private function formatSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+        return round($bytes, 1) . $units[$i];
+    }
+
+    /**
+     * 清理文件名：过滤乱码、空名称等异常情况
+     */
+    private function cleanFileName(?string $originName, string $ext): string
+    {
+        if (empty($originName)) {
+            return "设计稿." . $ext;
+        }
+
+        // 去掉首尾空白和特殊符号后，如果只剩点号或极短字符，视为无效文件名
+        $cleaned = trim($originName, " \t\n\r\0\x0B·.-_");
+        if (mb_strlen($cleaned) < 2) {
+            return "设计稿." . $ext;
+        }
+
+        // 如果原始文件名只包含标点/符号，也视为无效
+        if (preg_match('/^[\s\.\-\_\·]+$/', $originName)) {
+            return "设计稿." . $ext;
+        }
+
+        return $originName;
     }
 }

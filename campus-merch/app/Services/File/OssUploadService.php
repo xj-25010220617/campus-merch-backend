@@ -278,22 +278,14 @@ class OssUploadService
     {
         $disk = Storage::disk(config('filesystems.default', 'oss'));
 
-        /*
-         * instanceof 是什么？
-         *    PHP 的类型运算符，检查对象是否属于某个类（或其子类）。
-         *
-         * 这里用来判断当前使用的是不是 S3/OSS 适配器：
-         *    - 如果是 → 调用 temporaryUrl() 生成签名临时链接
-         *    - 如果不是（本地存储）→ 直接返回普通 URL
-         */
-        if ($disk->getDriver()->getAdapter() instanceof \League\Flysystem\AwsS3V3\AwsS3Adapter) {
-            // 🌐 OSS/S3 模式：生成带签名的临时 URL
-            // now()->addMinutes($expiresMinutes) → 当前时间 + N 分钟（Laravel Carbon 辅助函数）
+        // Laravel 11 / Flysystem v3：直接使用 temporaryUrl()
+        // S3/OSS 适配器会自动处理签名，本地存储会回退到 url()
+        try {
             return $disk->temporaryUrl($storagePath, now()->addMinutes($expiresMinutes));
+        } catch (\BadMethodCallException $e) {
+            // local 等不支持 temporaryUrl 的磁盘，回退到普通 url
+            return $disk->url($storagePath);
         }
-
-        // 📁 本地存储模式：直接返回 URL（无时效限制）
-        return $disk->url($storagePath);
     }
 
     /*
@@ -524,26 +516,9 @@ class OssUploadService
      */
     private function resolveUrl($disk, string $storagePath): string
     {
-        $adapter = $disk->getDriver()->getAdapter();
-
-        // 检查是否为 S3/OSS 适配器
-        if ($adapter instanceof \League\Flysystem\AwsS3V3\AwsS3Adapter) {
-            return $disk->url($storagePath);
-            // S3/OSS 会返回类似：
-            // https://bucket-name.oss-cn-hangzhou.aliyuncs.com/path/to/file.jpg
-        }
-
-        // public 磁盘：文件可通过 Web 直接访问
-        // 需要 php artisan storage:link 创建符号链接
-        if (config('filesystems.default') === 'public' || config('filesystems.default') === 'oss') {
-            return $disk->url($storagePath);
-            // 返回类似：http://localhost/storage/path/to/file.jpg
-        }
-
-        // local/private 磁盘：文件不可直接通过 Web 访问
-        // 返回一个 API 路径，需要额外的控制器来代理文件下载
-        // urlencode() 对路径进行 URL 编码，防止特殊字符问题
-        return '/api/files/' . urlencode($storagePath);
-        // 返回类似：/api/files/merch-designs%2F123%2Fxxx.jpg
+        // Laravel 11 / Flysystem v3 兼容：直接使用 disk->url()
+        // S3/OSS 适配器会自动返回完整的 OSS URL
+        // public 磁盘会返回带 /storage 前缀的路径
+        return $disk->url($storagePath);
     }
 }
