@@ -644,22 +644,6 @@ class OrderExportService
             ->values()
             ->toArray();
 
-        // ═══ 2. 状态中文映射 ═══
-        
-        /*
-         * 数据库中存储的是英文状态码（如 'booked', 'completed'），
-         * 但导出给管理员看时需要显示为中文。
-         * 这个数组就是 状态码 → 中文显示名 的对照表。
-         */
-        $statusLabels = [
-            'draft'          => '草稿',
-            'booked'          => '已预订',
-            'design_pending'  => '待审核',
-            'ready'           => '制作中',
-            'completed'       => '已完成',
-            'rejected'        => '已驳回',
-        ];
-
         // ═══ 3. 组装完整的行数据 ═══
         return [
             'order_id'        => $order->id,
@@ -683,8 +667,8 @@ class OrderExportService
             'size'            => $order->size ?? '',
             'color'           => $order->color ?? '',
 
-            // 状态映射：$statusLabels[$order->status] 取中文，如果找不到则用原始英文
-            'status'          => $statusLabels[$order->status] ?? $order->status,
+            // 状态中文：复用 Order Model 的 getStatusLabel()，保持单一定义
+            'status'          => $order->getStatusLabel(),
 
             'shipping_address'=> $order->shipping_address ?? '',
             'remark'          => $order->remark ?? '',

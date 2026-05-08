@@ -80,7 +80,7 @@ class OrderDesignController extends Controller
      *    │ ④ 返回 JSON 响应  │ ← 201 Created + 附件信息 + 临时链接
      *    └──────────────────┘
      *
-     * @param  int                        $id      订单ID（从URL路径参数获取）
+     * @param  Order                       $order   订单模型（路由模型绑定自动解析）
      * @param  UploadOrderDesignRequest   $request  经过验证的表单请求对象
      * @return  JsonResponse                      JSON 格式的API响应
      *
@@ -112,33 +112,21 @@ class OrderDesignController extends Controller
      *    - 413: 文件太大（FormRequest 校验）
      *    - 422: 文件格式不支持 / 当前状态不允许上传设计稿
      */
-    public function store(int $id, UploadOrderDesignRequest $request): JsonResponse
+    public function store(Order $order, UploadOrderDesignRequest $request): JsonResponse
     {
         // ════════════════════════════════════════
-        // 步骤1：查询并校验订单归属（安全防护）
+        // 步骤1：校验订单归属权限（安全防护）
         // ════════════════════════════════════════
 
         /*
-         * 🔒 为什么需要 where('user_id', ...) 条件？
-         *    这是一个关键的安全措施 —— **数据归属权校验**。
+         * 🔒 使用 OrderPolicy 的 view 策略校验数据归属权
+         *    确保当前登录用户是订单的所有者，否则返回 403
+         *    （与 OrderController::complete() 等方法保持一致的权限模式）
          *
-         *    URL中的 $id 只是告诉我们要操作哪个订单，
-         *    但我们必须确保这个订单**归属于当前登录用户**，
-         *    否则恶意用户可以修改别人的订单（越权攻击！）。
-         *
-         *    $request->user() 从 JWT/Session 中获取当前认证的用户模型
-         *
-         * firstOrFail() 说明：
-         *    如果找到记录 → 返回 Order 模型实例
-         *    如果没找到 → 自动抛出 ModelNotFoundException → 全局异常处理器返回 404
-         *
-         * ⚠️ 这里的查询条件是 AND 关系：
-         *    WHERE id = ? AND user_id = ?
-         *    必须同时满足：ID匹配 + 属于当前用户
+         *    路由模型绑定已自动按 {order} 参数从数据库解析出 Order 实例，
+         *    找不到时 Laravel 自动返回 404
          */
-        $order = Order::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        $this->authorize('view', $order);
 
         // ════════════════════════════════════════
         // 步骤2：获取上传的文件
