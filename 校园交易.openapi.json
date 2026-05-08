@@ -1,0 +1,1371 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "校园交易",
+    "description": "Campus Merch 后端接口文档，包含认证、商品、订单、审核、文件上传等模块",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "认证"
+    },
+    {
+      "name": "商品"
+    },
+    {
+      "name": "订单"
+    },
+    {
+      "name": "文件"
+    },
+    {
+      "name": "审核"
+    },
+    {
+      "name": "报表"
+    }
+  ],
+  "paths": {
+    "/api/register": {
+      "post": {
+        "summary": "注册",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "name": "徐杰",
+                "email": "123456@qq.com",
+                "password": "12345678",
+                "password_confirmation": "12345678",
+                "phone": "13219034160"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "token": "7|kt8AkGPDY6qWWTQIaWyDmJ75JT5AiI3Hgysl4ZAu76e45649",
+                    "token_type": "Bearer",
+                    "user": {
+                      "id": 3,
+                      "name": "徐杰",
+                      "email": "123456@qq.com",
+                      "phone": "13219034160",
+                      "role": "user",
+                      "status": "active",
+                      "created_at": "2026-04-29T11:56:26.000000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/login": {
+      "post": {
+        "summary": "用户登录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "login",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "邮箱",
+                    "example": "zhangsan@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "密码",
+                    "example": "12345678"
+                  }
+                }
+              },
+              "example": {
+                "email": "123456@qq.com",
+                "password": "12345678"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "token": "2|xyz789ghi012",
+                    "token_type": "Bearer",
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "email": "zhangsan@example.com",
+                      "phone": "13800138000",
+                      "role": "user",
+                      "status": "active",
+                      "created_at": "2026-04-27T10:00:00.000000Z"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "422": {
+            "description": "邮箱或密码错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "用户登出",
+        "deprecated": false,
+        "description": "",
+        "operationId": "logout",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "登出成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {},
+                          "nullable": true
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": null
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "未认证",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "获取当前用户信息",
+        "deprecated": false,
+        "description": "",
+        "operationId": "me",
+        "tags": [
+          "认证"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "id": 1,
+                    "name": "张三",
+                    "email": "zhangsan@example.com",
+                    "phone": "13800138000",
+                    "role": "user",
+                    "status": "active",
+                    "created_at": "2026-04-27T10:00:00.000000Z"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "未认证",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "获取商品列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "productList",
+        "tags": [
+          "商品"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "按分类筛选",
+            "required": false,
+            "example": "服装",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "按类型筛选",
+            "required": false,
+            "example": "T恤",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "按状态筛选",
+            "required": false,
+            "example": "active",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "active",
+                "inactive",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页条数",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {}
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "获取商品详情",
+        "deprecated": false,
+        "description": "",
+        "operationId": "productShow",
+        "tags": [
+          "商品"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "商品不存在",
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "put": {
+        "summary": "更新商品（管理员）",
+        "deprecated": false,
+        "description": "",
+        "operationId": "productUpdate",
+        "tags": [
+          "商品"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "商品名称",
+                    "example": "校园文化衫V2"
+                  },
+                  "category": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "分类",
+                    "example": "服装"
+                  },
+                  "type": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "类型",
+                    "example": "T恤"
+                  },
+                  "spec": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "规格",
+                    "nullable": true,
+                    "example": "纯棉200g"
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "description": "单价",
+                    "example": 69.9
+                  },
+                  "stock": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "可用库存",
+                    "example": 300
+                  },
+                  "cover_url": {
+                    "type": "string",
+                    "maxLength": 2048,
+                    "description": "封面图URL",
+                    "nullable": true
+                  },
+                  "custom_rule": {
+                    "type": "string",
+                    "description": "定制规则",
+                    "nullable": true
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "inactive",
+                      "archived"
+                    ],
+                    "description": "状态",
+                    "example": "active"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "版本号(乐观锁)",
+                    "nullable": true,
+                    "example": 1
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限",
+            "headers": {}
+          },
+          "404": {
+            "description": "商品不存在",
+            "headers": {}
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/products/import": {
+      "post": {
+        "summary": "导入商品（管理员）",
+        "deprecated": false,
+        "description": "",
+        "operationId": "productImport",
+        "tags": [
+          "商品"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Excel/CSV文件(xlsx/xls/csv, 最大10MB)",
+                    "example": ""
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "导入成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": {
+                  "code": 0,
+                  "message": "导入成功，共处理 20 条",
+                  "data": null
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限",
+            "headers": {}
+          },
+          "422": {
+            "description": "文件格式错误",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "summary": "创建订单（下单）",
+        "deprecated": false,
+        "description": "用户下单，系统自动预扣库存（reserved_stock），生成订单编号，状态变为 booked",
+        "operationId": "orderStore",
+        "tags": [
+          "订单"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product_id",
+                  "quantity"
+                ],
+                "properties": {
+                  "product_id": {
+                    "type": "integer",
+                    "description": "商品ID",
+                    "example": 1
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "购买数量",
+                    "example": 2
+                  },
+                  "size": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "description": "尺码",
+                    "nullable": true,
+                    "example": "XL"
+                  },
+                  "color": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "description": "颜色",
+                    "nullable": true,
+                    "example": "白色"
+                  },
+                  "shipping_address": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "收货地址",
+                    "nullable": true,
+                    "example": "北京市海淀区XX路XX号"
+                  },
+                  "remark": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "用户备注",
+                    "nullable": true,
+                    "example": "请加急处理"
+                  }
+                }
+              },
+              "example": {
+                "product_id": 1,
+                "quantity": 2,
+                "size": "XL",
+                "color": "白色",
+                "shipping_address": "东软",
+                "remark": "请加急处理"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "下单成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "下单成功",
+                  "data": {
+                    "id": 1,
+                    "order_no": "ORD202604271000000001",
+                    "user_id": 1,
+                    "product_id": 1,
+                    "quantity": 2,
+                    "unit_price": "59.90",
+                    "total_price": "119.80",
+                    "size": "XL",
+                    "color": "白色",
+                    "status": "booked",
+                    "shipping_address": "北京市海淀区XX路XX号",
+                    "remark": "请加急处理",
+                    "reviewed_by": null,
+                    "reviewed_at": null,
+                    "review_reason": null,
+                    "completed_at": null,
+                    "created_at": "2026-04-27T10:00:00.000000Z",
+                    "updated_at": "2026-04-27T10:00:00.000000Z"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "422": {
+            "description": "库存不足或参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/my-orders": {
+      "get": {
+        "summary": "查询我的订单",
+        "deprecated": false,
+        "description": "用户侧订单查询，支持按状态筛选和分页",
+        "operationId": "myOrders",
+        "tags": [
+          "订单"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "按订单状态筛选",
+            "required": false,
+            "example": "booked",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "booked",
+                "design_pending",
+                "ready",
+                "completed",
+                "rejected"
+              ]
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页条数",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {}
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "未认证",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "summary": "获取订单详情",
+        "deprecated": false,
+        "description": "",
+        "operationId": "orderShow",
+        "tags": [
+          "订单"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "订单ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限查看",
+            "headers": {}
+          },
+          "404": {
+            "description": "订单不存在",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/orders/{id}/complete": {
+      "post": {
+        "summary": "确认完成订单",
+        "deprecated": false,
+        "description": "仅 ready 状态可操作。完成时系统自动扣减库存（stock减少、reserved_stock减少、sold_stock增加）",
+        "operationId": "orderComplete",
+        "tags": [
+          "订单"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "订单ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "订单已完成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "订单已完成",
+                  "data": {
+                    "id": 1,
+                    "order_no": "ORD202604271000000001",
+                    "status": "completed",
+                    "completed_at": "2026-04-27T12:00:00.000000Z"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限操作",
+            "headers": {}
+          },
+          "422": {
+            "description": "当前状态不可完成",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/orders/{id}/design": {
+      "post": {
+        "summary": "上传设计稿",
+        "deprecated": false,
+        "description": "上传订单设计稿文件，订单状态将变为 design_pending（待审核）",
+        "operationId": "uploadDesign",
+        "tags": [
+          "文件"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "订单ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "design_file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "设计稿文件(支持 jpg/jpeg/png/pdf/ai/psd，最大15MB)",
+                    "example": ""
+                  }
+                },
+                "required": [
+                  "design_file"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "上传成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": {
+                  "code": 0,
+                  "message": "上传成功",
+                  "data": {
+                    "id": 1,
+                    "type": "design",
+                    "origin_name": "设计稿.png",
+                    "storage_path": "orders/2026/04/abc123.png"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "422": {
+            "description": "文件格式或大小不符合要求",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/orders/{id}/review": {
+      "put": {
+        "summary": "审核订单（管理员）",
+        "deprecated": false,
+        "description": "仅 design_pending 状态可审核。通过→ready；驳回→rejected 并释放预扣库存",
+        "operationId": "orderReview",
+        "tags": [
+          "审核"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "订单ID",
+            "required": true,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "approve",
+                      "reject"
+                    ],
+                    "description": "审核动作: approve=通过, reject=驳回",
+                    "example": "approve"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "驳回原因（驳回时必填）",
+                    "nullable": true,
+                    "example": "设计稿不符合规范"
+                  }
+                }
+              },
+              "example": {
+                "action": "reject",
+                "reason": "设计稿不符合规范，请重新上传"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "审核完成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "message": "审核完成",
+                  "data": {
+                    "id": 1,
+                    "order_no": "ORD202604271000000001",
+                    "status": "ready",
+                    "reviewed_by": 2,
+                    "reviewed_at": "2026-04-27T11:00:00.000000Z",
+                    "review_reason": null
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限",
+            "headers": {}
+          },
+          "422": {
+            "description": "当前状态不可审核或驳回缺少原因",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/orders/export": {
+      "get": {
+        "summary": "导出订单（管理员）",
+        "deprecated": false,
+        "description": "",
+        "operationId": "orderExport",
+        "tags": [
+          "报表"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "按状态筛选导出",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "booked",
+                "design_pending",
+                "ready",
+                "completed",
+                "rejected"
+              ]
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "description": "开始日期",
+            "required": false,
+            "example": "2026-04-01",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "description": "结束日期",
+            "required": false,
+            "example": "2026-04-27",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel文件流",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "summary": "管理后台统计（管理员）",
+        "deprecated": false,
+        "description": "",
+        "operationId": "adminStats",
+        "tags": [
+          "报表"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "total_orders": {
+                              "type": "integer",
+                              "description": "总订单数",
+                              "example": 1250
+                            },
+                            "pending_review": {
+                              "type": "integer",
+                              "description": "待审核订单数",
+                              "example": 15
+                            },
+                            "total_revenue": {
+                              "type": "string",
+                              "description": "总营收",
+                              "example": "75890.50"
+                            },
+                            "total_products": {
+                              "type": "integer",
+                              "description": "商品总数",
+                              "example": 45
+                            },
+                            "total_users": {
+                              "type": "integer",
+                              "description": "用户总数",
+                              "example": 320
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "无权限",
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [],
+  "security": []
+}

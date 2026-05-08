@@ -222,15 +222,15 @@ class OssUploadService
         //    - disk('public') → 存到 storage/app/public/（可通过 web 访问）
         //    - disk('oss/s3') → 存到阿里云 OSS / AWS S3 等云存储
         //
-        // ⚙️ config('filesystems.default', 'local') 含义：
+        // ⚙️ config('filesystems.default', 'oss') 含义：
         //    从 config/filesystems.php 或 .env 读取 FILESYSTEM_DISK 配置，
-        //    如果没配置则默认使用 'local'（本地存储）。
+        //    如果没配置则默认使用 'oss'（阿里云 OSS 存储）。
         //
         // 📝 put() 方法：
         //    第一个参数：存储路径（相对于磁盘根目录）
         //    第二个参数：文件内容（字符串或二进制数据）
         //    $file->getContent() 获取上传文件的完整二进制内容
-        $disk = Storage::disk(config('filesystems.default', 'local'));
+        $disk = Storage::disk(config('filesystems.default', 'oss'));
         $disk->put($storagePath, $file->getContent());
 
         // ════════════════════════════════════════
@@ -276,7 +276,7 @@ class OssUploadService
      */
     public function getTemporaryUrl(string $storagePath, int $expiresMinutes = 120): string
     {
-        $disk = Storage::disk(config('filesystems.default', 'local'));
+        $disk = Storage::disk(config('filesystems.default', 'oss'));
 
         /*
          * instanceof 是什么？
@@ -313,7 +313,7 @@ class OssUploadService
      */
     public function delete(string $storagePath): bool
     {
-        $disk = Storage::disk(config('filesystems.default', 'local'));
+        $disk = Storage::disk(config('filesystems.default', 'oss'));
 
         // 先判断文件是否存在，避免报错
         if ($disk->exists($storagePath)) {
@@ -535,7 +535,7 @@ class OssUploadService
 
         // public 磁盘：文件可通过 Web 直接访问
         // 需要 php artisan storage:link 创建符号链接
-        if (config('filesystems.default') === 'public') {
+        if (config('filesystems.default') === 'public' || config('filesystems.default') === 'oss') {
             return $disk->url($storagePath);
             // 返回类似：http://localhost/storage/path/to/file.jpg
         }

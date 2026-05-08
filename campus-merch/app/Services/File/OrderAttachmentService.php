@@ -138,7 +138,7 @@ class OrderAttachmentService
          *    ->value = 枚举对应的值（如 'booked'）
          *    ->name  = 枚举常量名（如 'BOOKED'）
          */
-        if ($order->status !== OrderStatus::BOOKED->value) {
+        if ($order->status !== OrderStatus::BOOKED) {
             throw new \InvalidArgumentException(
                 "当前订单状态为「{$order->status}」，仅「已预订」状态的订单可上传设计稿。"
                 // 抛出异常后，Controller 的异常处理器会捕获并返回友好的错误响应
@@ -243,7 +243,7 @@ class OrderAttachmentService
              * 这个状态变化意味着：
              *    用户已提交了设计稿，等待管理员/运营人员审核确认。
              */
-            $order->update(['status' => OrderStatus::DESIGN_PENDING->value]);
+            $order->update(['status' => OrderStatus::DESIGN_PENDING]);
 
             // 返回新创建的附件记录给调用方
             return $attachment;
