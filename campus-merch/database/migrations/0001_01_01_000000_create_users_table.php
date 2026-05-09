@@ -26,18 +26,20 @@ return new class extends Migration
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->string('email')->primary()->comment('邮箱');
+            $table->string('token')->comment('重置令牌');
+            $table->timestamp('created_at')->nullable()->comment('创建时间');
+            $table->comment('密码重置令牌表');
         });
 
         Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+            $table->string('id')->primary()->comment('会话ID');
+            $table->foreignId('user_id')->nullable()->index()->comment('用户ID');
+            $table->string('ip_address', 45)->nullable()->comment('IP地址');
+            $table->text('user_agent')->nullable()->comment('用户代理');
+            $table->longText('payload')->comment('会话数据');
+            $table->integer('last_activity')->index()->comment('最后活动时间');
+            $table->comment('会话表');
         });
     }
 
