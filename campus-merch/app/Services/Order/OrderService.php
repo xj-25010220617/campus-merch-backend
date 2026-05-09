@@ -31,7 +31,7 @@ class OrderService
             $totalPrice = bcmul($unitPrice, $data['quantity'], 2);
 
             $fromStatus = OrderStatus::DRAFT;
-            $toStatus = OrderStatus::Booked;
+            $toStatus = OrderStatus::BOOKED;
 
             $order = Order::create([
                 'user_id'          => $user->id,
@@ -66,7 +66,7 @@ class OrderService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($order->user_id !== $user->id) {
+            if ($order->user_id !== $user->id && $user->role !== \App\Enums\UserRole::ADMIN) {
                 throw ValidationException::withMessages([
                     'order' => '无权限操作',
                 ]);

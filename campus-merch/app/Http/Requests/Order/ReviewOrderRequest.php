@@ -9,7 +9,7 @@ class ReviewOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === UserRole::ADMIN->value;
+        return $this->user()?->role === UserRole::ADMIN;
     }
 
     public function rules(): array
